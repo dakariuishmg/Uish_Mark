@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="obsidian" data-layout="grid" data-density="normal">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>UISHmark</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+
+/* ══════════ THEMES ══════════ */
+[data-theme="obsidian"]{--bg:#080808;--sf:#101010;--sf2:#181818;--sf3:#222;--bd:#252525;--bd2:#333;--ac:#d4a843;--acr:212,168,67;--acd:rgba(212,168,67,.11);--acg:rgba(212,168,67,.22);--tx:#ddd;--tx2:#888;--mu:#444;--dg:#c0392b;--dgd:rgba(192,57,43,.15);--pin:#5b8fde;--gl:rgba(255,255,255,.013);--card:#111}
+[data-theme="terminal"]{--bg:#000;--sf:#060606;--sf2:#0d0d0d;--sf3:#141414;--bd:#162216;--bd2:#1f381f;--ac:#39ff14;--acr:57,255,20;--acd:rgba(57,255,20,.08);--acg:rgba(57,255,20,.28);--tx:#a8f0a0;--tx2:#4e7a48;--mu:#243c24;--dg:#ff4136;--dgd:rgba(255,65,54,.15);--pin:#14c8ff;--gl:rgba(57,255,20,.018);--card:#060606}
+[data-theme="chalk"]{--bg:#f4f1ec;--sf:#ede9e2;--sf2:#e4dfd6;--sf3:#d9d3c9;--bd:#ccc6bb;--bd2:#b5ada0;--ac:#8b3a2e;--acr:139,58,46;--acd:rgba(139,58,46,.08);--acg:rgba(139,58,46,.2);--tx:#1a1510;--tx2:#6b6258;--mu:#b0a898;--dg:#c0392b;--dgd:rgba(192,57,43,.12);--pin:#2a5ca8;--gl:rgba(0,0,0,.025);--card:#eae6df}
+[data-theme="glacier"]{--bg:#06090f;--sf:#0c1118;--sf2:#121820;--sf3:#18212e;--bd:#182230;--bd2:#223348;--ac:#7eb8ff;--acr:126,184,255;--acd:rgba(126,184,255,.1);--acg:rgba(126,184,255,.24);--tx:#c0d8f0;--tx2:#6080a0;--mu:#2a3d58;--dg:#ff6b6b;--dgd:rgba(255,107,107,.15);--pin:#a78bfa;--gl:rgba(126,184,255,.014);--card:#0c1118}
+[data-theme="dusk"]{--bg:#0c080f;--sf:#130e16;--sf2:#1b1620;--sf3:#231d28;--bd:#26202e;--bd2:#342840;--ac:#e879f9;--acr:232,121,249;--acd:rgba(232,121,249,.1);--acg:rgba(232,121,249,.24);--tx:#e0d0e8;--tx2:#7a5a88;--mu:#382a40;--dg:#ff6b9d;--dgd:rgba(255,107,157,.15);--pin:#fbbf24;--gl:rgba(232,121,249,.014);--card:#130e16}
+
+/* ══════════ BASE ══════════ */
+body{background:var(--bg);color:var(--tx);font-family:ui-monospace,'Cascadia Code','SF Mono','Menlo','Courier New',monospace;font-size:13px;display:flex;align-items:center;justify-content:center;position:relative;user-select:none;cursor:default;transition:background .3s,color .3s}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:repeating-linear-gradient(0deg,transparent,transparent 39px,var(--gl) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,var(--gl) 40px)}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 70% 50% at 50% 44%,rgba(var(--acr),.04) 0%,transparent 70%);animation:ambi 14s ease-in-out infinite alternate}
+@keyframes ambi{0%{opacity:.5}100%{opacity:1}}
+*{scrollbar-width:thin;scrollbar-color:var(--bd2) transparent}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+
+/* ══════════ LOADING ══════════ */
+#loading{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:opacity .3s}
+#loading.hidden{opacity:0;pointer-events:none}
+.ld-ring{width:28px;height:28px;border:2px solid var(--bd2);border-top-color:var(--ac);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ld-txt{font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--mu)}
+
+/* ══════════ BOOT SCREEN ══════════ */
+#boot{display:flex;flex-direction:column;align-items:center;gap:13px;z-index:1;position:relative;animation:bIn .6s cubic-bezier(.4,0,.2,1) both;opacity:0}
+@keyframes bIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.b-icon{width:56px;height:56px;border:1px solid var(--bd2);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;color:var(--mu);background:var(--sf);transition:all .18s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}
+.b-icon::after{content:'';position:absolute;inset:0;background:var(--acd);opacity:0;transition:opacity .18s}
+.b-icon:hover{border-color:var(--ac);color:var(--ac);transform:translateY(-3px);box-shadow:0 10px 28px var(--acg)}
+.b-icon:hover::after{opacity:1}
+.b-icon:active{transform:translateY(0) scale(.94)}
+.b-icon.tools-icon{font-size:16px}
+
+/* Settings gear — always visible top-right */
+#boot-gear{position:fixed;top:18px;right:22px;z-index:10;width:36px;height:36px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--mu);font-size:15px;transition:all .18s cubic-bezier(.4,0,.2,1)}
+#boot-gear:hover{border-color:var(--ac);color:var(--ac);box-shadow:0 4px 14px var(--acg)}
+/* storage warning dot */
+#boot-gear .gear-dot{position:absolute;top:6px;right:6px;width:5px;height:5px;background:#e05c52;border-radius:50%;display:none}
+#boot-gear.warn .gear-dot{display:block}
+
+.boot-wm{position:fixed;bottom:17px;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:.38em;color:var(--mu);z-index:1;opacity:.35;animation:bIn .6s .3s both;text-transform:uppercase}
+
+/* ══════════ WIZARD ══════════ */
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .22s}
+#overlay.open{opacity:1;pointer-events:all}
+#wizard{background:var(--sf);border:1px solid var(--bd2);border-radius:10px;width:470px;max-width:calc(100vw - 24px);padding:28px 30px;transform:translateY(14px) scale(.975);transition:transform .22s cubic-bezier(.4,0,.2,1)}
+#overlay.open #wizard{transform:translateY(0) scale(1)}
+.wh{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.wh-lbl{font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--ac)}
+.wh-stp{font-size:9px;letter-spacing:.14em;color:var(--mu)}
+.ic-btn{background:none;border:none;cursor:pointer;color:var(--mu);font-size:15px;padding:2px 6px;font-family:inherit;transition:all .14s;border-radius:4px}
+.ic-btn:hover{color:var(--tx);background:var(--bd)}
+.step{display:none}
+.step.active{display:block;animation:sIn .18s cubic-bezier(.4,0,.2,1) both}
+@keyframes sIn{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
+.fl{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--mu);margin-bottom:7px}
+.fi{width:100%;background:var(--sf2);border:1px solid var(--bd2);border-radius:5px;color:var(--tx);font-family:inherit;font-size:13px;padding:11px 13px;outline:none;transition:border-color .15s;user-select:text;-webkit-user-select:text}
+.fi:focus{border-color:var(--ac)}
+.fi::placeholder{color:var(--mu)}
+.fi.shake{animation:shk .38s;border-color:var(--dg)!important}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;min-height:22px}
+.tag-chip{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;cursor:pointer;border:1px solid var(--bd2);background:var(--sf2);color:var(--tx2);transition:all .13s;user-select:none}
+.tag-chip.selected,.tag-chip:hover{border-color:var(--ac);color:var(--ac);background:var(--acd)}
+.prev-block{background:var(--sf2);border:1px solid var(--bd2);border-radius:5px;padding:14px;margin-bottom:16px}
+.prev-d{font-size:10px;color:var(--ac);letter-spacing:.1em;margin-bottom:5px}
+.prev-t{font-size:13px;color:var(--tx);line-height:1.4}
+.btn-row{display:flex;gap:8px;margin-top:20px}
+.btn{padding:9px 17px;border-radius:5px;font-family:inherit;font-size:9px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;border:1px solid transparent;transition:all .14s}
+.btn-p{background:var(--ac);color:#000;font-weight:700;border-color:var(--ac)}
+.btn-p:hover{filter:brightness(1.1);box-shadow:0 4px 18px var(--acg)}
+.btn-g{background:transparent;color:var(--tx2);border-color:var(--bd2)}
+.btn-g:hover{color:var(--tx);background:var(--bd)}
+
+/* ══════════ PANEL BASE (shared by both libraries) ══════════ */
+.panel{position:fixed;inset:0;background:var(--bg);z-index:90;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .36s cubic-bezier(.4,0,.2,1);overflow:hidden}
+.panel.open{transform:translateY(0)}
+.ph{display:flex;align-items:center;gap:10px;padding:14px 22px;border-bottom:1px solid var(--bd2);flex-shrink:0;flex-wrap:wrap}
+.ph-title{font-size:9px;letter-spacing:.38em;text-transform:uppercase;color:var(--ac);margin-right:4px;white-space:nowrap}
+.ph-search{background:var(--sf2);border:1px solid var(--bd2);border-radius:5px;color:var(--tx);font-family:inherit;font-size:12px;padding:7px 11px;width:160px;outline:none;transition:border-color .15s;user-select:text;-webkit-user-select:text}
+.ph-search:focus{border-color:var(--ac)}
+.ph-search::placeholder{color:var(--mu)}
+.ph-count{font-size:9px;color:var(--mu);letter-spacing:.1em;white-space:nowrap;flex-shrink:0}
+.ph-btn{background:none;border:1px solid var(--bd2);border-radius:5px;color:var(--mu);cursor:pointer;font-family:inherit;font-size:9px;letter-spacing:.12em;padding:6px 10px;transition:all .14s;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+.ph-btn:hover{border-color:var(--ac);color:var(--ac)}
+.pb{flex:1;overflow-y:auto;padding:20px 22px}
+.panel-tools{display:flex;gap:7px;align-items:center;padding:10px 22px;border-top:1px solid var(--bd);flex-shrink:0;flex-wrap:wrap}
+.btn-tool{font-family:inherit;font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:5px 12px;background:transparent;border:1px solid var(--bd2);border-radius:4px;color:var(--mu);cursor:pointer;transition:all .14s}
+.btn-tool:hover{border-color:var(--ac);color:var(--ac)}
+.pfooter{display:flex;align-items:center;padding:6px 22px;flex-shrink:0}
+.pfooter-stats{font-size:9px;color:var(--mu);letter-spacing:.1em;flex:1}
+.pfooter-sig{font-size:9px;letter-spacing:.28em;color:var(--bd2);text-transform:uppercase;opacity:.6}
+
+/* ══════════ TAG BAR ══════════ */
+#tag-bar{display:flex;align-items:center;gap:7px;padding:9px 22px;border-bottom:1px solid var(--bd);flex-shrink:0;overflow-x:auto;min-height:40px}
+#tag-bar:empty{display:none}
+.tb-lbl{font-size:9px;color:var(--mu);letter-spacing:.14em;text-transform:uppercase;flex-shrink:0}
+.tb-chip{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:20px;cursor:pointer;border:1px solid var(--bd2);background:var(--sf2);color:var(--tx2);transition:all .13s;white-space:nowrap;user-select:none}
+.tb-chip:hover{border-color:var(--ac);color:var(--ac)}
+.tb-chip.active{border-color:var(--ac);color:var(--ac);background:var(--acd)}
+
+/* ══════════ SORT BAR ══════════ */
+.sort-row{display:flex;align-items:center;gap:7px;margin-bottom:16px;flex-wrap:wrap}
+.sort-lbl{font-size:9px;color:var(--mu);letter-spacing:.14em;text-transform:uppercase;margin-right:3px;flex-shrink:0}
+.sort-btn{font-family:inherit;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;background:transparent;border:1px solid var(--bd);border-radius:20px;color:var(--mu);cursor:pointer;transition:all .13s}
+.sort-btn:hover{border-color:var(--bd2);color:var(--tx2)}
+.sort-btn.active{border-color:var(--ac);color:var(--ac);background:var(--acd)}
+
+/* ══════════ BOOKMARK CARDS ══════════ */
+#cards-grid{display:grid;gap:12px}
+[data-layout="grid"]    #cards-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+[data-layout="list"]    #cards-grid{grid-template-columns:1fr}
+[data-layout="compact"] #cards-grid{grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:8px}
+[data-density="comfortable"] #cards-grid{gap:17px}
+[data-density="compact"]     #cards-grid{gap:7px}
+
+.bm-card{background:var(--card);border:1px solid var(--bd2);border-radius:7px;padding:15px;cursor:pointer;position:relative;overflow:hidden;opacity:0;transform:translateY(8px);animation:cIn .28s cubic-bezier(.4,0,.2,1) forwards;transition:border-color .16s,box-shadow .16s,transform .16s}
+@keyframes cIn{to{opacity:1;transform:translateY(0)}}
+.bm-card::before{content:'';position:absolute;inset:0;background:var(--acd);opacity:0;transition:opacity .16s;pointer-events:none}
+.bm-card:hover{border-color:rgba(var(--acr),.4);transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.bm-card:hover::before{opacity:.5}
+.bm-card.pinned{border-left:2px solid var(--pin)}
+[data-layout="list"] .bm-card{display:flex;align-items:center;gap:14px;padding:12px 15px}
+[data-layout="list"] .card-main{flex:1;min-width:0}
+[data-layout="list"] .card-actions{flex-shrink:0}
+[data-layout="list"] .card-top{margin-bottom:2px}
+[data-layout="list"] .card-domain{margin-bottom:0}
+[data-layout="list"] .card-tags,[data-layout="list"] .card-meta{display:none}
+[data-density="compact"] .bm-card{padding:10px 12px}
+[data-density="compact"] .card-title{font-size:11px}
+.card-main{flex:1;min-width:0}
+.card-top{display:flex;align-items:flex-start;gap:8px;margin-bottom:5px}
+.card-fav{width:14px;height:14px;flex-shrink:0;margin-top:2px;opacity:.7}
+.card-title{font-size:12px;color:var(--tx);line-height:1.45;word-break:break-word}
+.card-pin-icon{font-size:10px;color:var(--pin);flex-shrink:0;margin-top:1px}
+.card-domain{font-size:10px;color:var(--mu);margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.c-tag{font-size:8px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:10px;border:1px solid var(--bd2);color:var(--tx2);background:var(--sf2)}
+.card-meta{font-size:9px;color:var(--mu);letter-spacing:.05em;margin-bottom:9px}
+.card-actions{display:flex;align-items:center;gap:6px}
+.c-btn{font-family:inherit;font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:5px 9px;border-radius:4px;cursor:pointer;transition:all .13s;border:1px solid var(--bd2);background:transparent;color:var(--mu)}
+.c-btn-open{border-color:rgba(var(--acr),.38);color:var(--ac)}
+.c-btn-open:hover{background:var(--ac);color:#000;border-color:var(--ac)}
+.c-btn-pin{color:var(--pin);border-color:rgba(91,143,222,.3);font-size:11px;padding:4px 7px}
+.c-btn-pin:hover{background:rgba(91,143,222,.12)}
+.c-btn-menu{margin-left:auto;font-size:13px;letter-spacing:0;padding:4px 7px}
+.c-btn-menu:hover{border-color:var(--bd2);color:var(--tx);background:var(--bd)}
+.bm-card.removing{animation:cOut .26s cubic-bezier(.4,0,.2,1) forwards;pointer-events:none}
+@keyframes cOut{to{opacity:0;transform:scale(.91)translateY(-4px)}}
+.lib-empty{grid-column:1/-1;text-align:center;padding:80px 20px}
+.lib-empty-sym{font-size:26px;margin-bottom:12px;opacity:.3;color:var(--mu)}
+.lib-empty-msg{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--mu)}
+
+/* ══════════ TOOL CARDS ══════════ */
+#tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.tool-card{background:var(--card);border:1px solid var(--bd2);border-radius:8px;padding:18px;position:relative;overflow:hidden;opacity:0;transform:translateY(8px);animation:cIn .28s cubic-bezier(.4,0,.2,1) forwards;transition:border-color .16s,box-shadow .16s,transform .16s}
+.tool-card::before{content:'';position:absolute;inset:0;background:var(--acd);opacity:0;transition:opacity .16s;pointer-events:none}
+.tool-card:hover{border-color:rgba(var(--acr),.4);transform:translateY(-2px);box-shadow:0 6px 28px rgba(0,0,0,.5)}
+.tool-card:hover::before{opacity:.6}
+.tool-card-head{display:flex;align-items:flex-start;gap:11px;margin-bottom:10px}
+.tool-icon{width:38px;height:38px;border-radius:6px;background:var(--sf2);border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;color:var(--ac)}
+.tool-name{font-size:13px;color:var(--tx);font-weight:normal;line-height:1.35;word-break:break-word}
+.tool-desc{font-size:10px;color:var(--tx2);margin-top:3px;line-height:1.4}
+.tool-meta{display:flex;gap:10px;margin-bottom:13px;flex-wrap:wrap}
+.tool-meta-item{font-size:9px;color:var(--mu);letter-spacing:.06em;display:flex;align-items:center;gap:4px}
+.tool-meta-item span{color:var(--tx2)}
+.tool-size-bar{height:2px;background:var(--bd);border-radius:1px;margin-bottom:13px;overflow:hidden}
+.tool-size-fill{height:100%;background:var(--ac);border-radius:1px;opacity:.5;transition:width .3s}
+.tool-actions{display:flex;align-items:center;gap:7px}
+.tc-btn-launch{border-color:rgba(var(--acr),.38);color:var(--ac);font-size:9px}
+.tc-btn-launch:hover{background:var(--ac);color:#000;border-color:var(--ac)}
+
+/* drop zone inside tools panel */
+#tools-drop{display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--bd2);border-radius:8px;padding:40px 24px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:18px}
+#tools-drop:hover,#tools-drop.drag-over{border-color:var(--ac);background:var(--acd)}
+#tools-drop-icon{font-size:22px;color:var(--mu);margin-bottom:10px;transition:color .2s}
+#tools-drop:hover #tools-drop-icon,#tools-drop.drag-over #tools-drop-icon{color:var(--ac)}
+#tools-drop-msg{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--mu)}
+#tools-drop-sub{font-size:9px;color:var(--mu);margin-top:5px;opacity:.6}
+
+/* popup warning banner */
+.popup-warn{background:rgba(var(--acr),.08);border:1px solid rgba(var(--acr),.2);border-radius:5px;padding:10px 14px;font-size:10px;color:var(--tx2);margin-bottom:16px;display:none;letter-spacing:.04em;line-height:1.5}
+.popup-warn.visible{display:block}
+
+/* ══════════ SETTINGS DRAWER ══════════ */
+#sd-scrim{position:fixed;inset:0;z-index:299;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(2px)}
+#sd-scrim.open{opacity:1;pointer-events:all}
+#settings-drawer{position:fixed;top:0;right:0;bottom:0;width:308px;background:var(--sf);border-left:1px solid var(--bd2);z-index:300;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow-y:auto}
+#settings-drawer.open{transform:translateX(0)}
+.sd-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--bd);flex-shrink:0}
+.sd-title{font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--ac)}
+.sd-sec{padding:16px 20px;border-bottom:1px solid var(--bd)}
+.sd-sec:last-child{border-bottom:none}
+.sd-lbl{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--mu);margin-bottom:12px}
+.theme-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.th-sw{width:100%;aspect-ratio:1;border-radius:5px;cursor:pointer;border:2px solid transparent;transition:all .15s;position:relative;overflow:hidden}
+.th-sw::after{content:'';position:absolute;inset:0;border-radius:3px;background:linear-gradient(135deg,var(--sw-t) 0%,var(--sw-b) 100%)}
+.th-sw:hover{transform:scale(1.1)}
+.th-sw.active{border-color:var(--ac)!important}
+.theme-name{text-align:center;font-size:9px;letter-spacing:.12em;color:var(--mu);margin-top:8px;text-transform:uppercase}
+.accent-row{display:flex;gap:8px;flex-wrap:wrap}
+.ac-dot{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .14s}
+.ac-dot:hover{transform:scale(1.15)}
+.ac-dot.active{border-color:var(--tx)!important;transform:scale(1.1)}
+.layout-row{display:flex;gap:7px}
+.layout-btn{flex:1;padding:10px 5px;border:1px solid var(--bd2);border-radius:5px;background:var(--sf2);cursor:pointer;transition:all .14s;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:inherit;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}
+.layout-btn .lb-ico{font-size:14px}
+.layout-btn.active{border-color:var(--ac);color:var(--ac);background:var(--acd)}
+.density-row{display:flex;gap:6px}
+.den-btn{flex:1;padding:7px 4px;border:1px solid var(--bd2);border-radius:4px;background:var(--sf2);cursor:pointer;font-family:inherit;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);transition:all .13s}
+.den-btn.active{border-color:var(--ac);color:var(--ac);background:var(--acd)}
+.pref-row{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:11px;color:var(--tx2);margin-bottom:10px}
+.pref-row:last-child{margin-bottom:0}
+.pref-row input{accent-color:var(--ac)}
+
+/* ── Storage backends ── */
+.storage-option{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--bd2);border-radius:6px;cursor:pointer;transition:all .14s;margin-bottom:7px}
+.storage-option:hover{border-color:var(--bd2);background:var(--sf2)}
+.storage-option.active{border-color:var(--ac);background:var(--acd)}
+.storage-option:last-child{margin-bottom:0}
+.so-letter{width:22px;height:22px;border-radius:4px;background:var(--sf3);border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--mu);flex-shrink:0;transition:all .14s}
+.storage-option.active .so-letter{background:var(--ac);color:#000;border-color:var(--ac)}
+.so-info{flex:1;min-width:0}
+.so-name{font-size:11px;color:var(--tx);letter-spacing:.04em}
+.so-desc{font-size:9px;color:var(--mu);margin-top:2px;letter-spacing:.04em}
+.so-badge{font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border-radius:3px;background:var(--sf3);color:var(--mu);flex-shrink:0}
+.storage-option.active .so-badge{background:var(--ac);color:#000}
+
+/* Storage meter */
+.storage-meter{margin-top:14px}
+.sm-bar{height:5px;background:var(--bd);border-radius:3px;overflow:hidden;margin:7px 0}
+.sm-fill{height:100%;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1),background .3s}
+.sm-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--mu);letter-spacing:.06em}
+.sm-warn{font-size:9px;color:#e05c52;margin-top:5px;display:none}
+.sm-warn.show{display:block}
+
+/* Stat chips */
+.stat-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.sc{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--bd2);border-radius:20px;color:var(--tx2);background:var(--sf2)}
+.sc span{color:var(--ac)}
+
+/* ══════════ CONTEXT MENU ══════════ */
+.ctx-menu{position:fixed;background:var(--sf2);border:1px solid var(--bd2);border-radius:7px;padding:4px;z-index:600;min-width:148px;box-shadow:0 12px 36px rgba(0,0,0,.6);animation:ctxIn .13s cubic-bezier(.4,0,.2,1)}
+@keyframes ctxIn{from{opacity:0;transform:scale(.9)translateY(-4px)}to{opacity:1;transform:scale(1)translateY(0)}}
+.ctx-item{padding:8px 12px;font-family:inherit;font-size:11px;border-radius:4px;cursor:pointer;transition:background .1s;color:var(--tx);letter-spacing:.04em}
+.ctx-item:hover{background:var(--bd)}
+.ctx-item.danger{color:#e05c52}
+.ctx-item.danger:hover{background:var(--dgd)}
+.ctx-sep{height:1px;background:var(--bd);margin:3px 0}
+
+/* ══════════ TOAST ══════════ */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%)translateY(8px);background:var(--sf2);border:1px solid var(--bd2);border-radius:6px;padding:9px 16px;font-size:11px;letter-spacing:.07em;color:var(--tx);z-index:800;opacity:0;pointer-events:none;transition:all .2s;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%)translateY(0)}
+
+/* ══════════ CMD BAR ══════════ */
+#cmd-bar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%)translateY(10px);width:380px;max-width:calc(100vw - 32px);background:var(--sf);border:1px solid var(--ac);border-radius:6px;padding:12px 14px;z-index:500;opacity:0;pointer-events:none;transition:all .2s;box-shadow:0 6px 30px var(--acg)}
+#cmd-bar.open{opacity:1;pointer-events:all;transform:translateX(-50%)translateY(0)}
+#cmd-in{width:100%;background:transparent;border:none;color:var(--ac);font-family:inherit;font-size:13px;outline:none;user-select:text;-webkit-user-select:text}
+#cmd-in::placeholder{color:var(--mu)}
+#cmd-hint{font-size:9px;color:var(--mu);margin-top:5px;letter-spacing:.1em}
+
+/* ══════════ HELP ══════════ */
+#help-ov{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(10px);z-index:900;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+#help-ov.open{opacity:1;pointer-events:all}
+.help-box{background:var(--sf);border:1px solid var(--bd2);border-radius:10px;width:440px;max-width:calc(100vw - 24px);padding:26px 28px;animation:sIn .18s cubic-bezier(.4,0,.2,1) both;max-height:90vh;overflow-y:auto}
+.help-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.help-title{font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--ac)}
+.help-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--bd)}
+.help-row:last-child{border-bottom:none}
+.help-key{font-size:10px;color:var(--ac);letter-spacing:.06em}
+.help-desc{font-size:10px;color:var(--tx2);text-align:right}
+.help-section{margin:12px 0 6px;font-size:9px;color:var(--mu);letter-spacing:.18em;text-transform:uppercase}
+kbd{background:var(--sf2);border:1px solid var(--bd2);border-radius:3px;padding:1px 5px;font-family:inherit;font-size:9px;color:var(--tx2);margin:0 2px}
+
+/* ══════════ GLOBAL DROP ZONE ══════════ */
+#drop-zone{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);border:2px dashed var(--ac);z-index:50;align-items:center;justify-content:center;font-size:11px;letter-spacing:.3em;color:var(--ac);text-transform:uppercase;backdrop-filter:blur(4px)}
+#drop-zone.active{display:flex}
+
+/* ══════════ MIGRATION MODAL ══════════ */
+#migrate-modal{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(10px);z-index:950;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+#migrate-modal.open{opacity:1;pointer-events:all}
+.mm-box{background:var(--sf);border:1px solid var(--bd2);border-radius:10px;width:400px;max-width:calc(100vw - 24px);padding:26px 28px;animation:sIn .18s cubic-bezier(.4,0,.2,1) both}
+.mm-title{font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--ac);margin-bottom:14px}
+.mm-body{font-size:12px;color:var(--tx2);line-height:1.6;margin-bottom:20px}
+.mm-body strong{color:var(--tx)}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="ld-ring"></div>
+  <div class="ld-txt">Initialising storage…</div>
+</div>
+
+<!-- BOOT SCREEN -->
+<div id="boot">
+  <div class="b-icon" id="b-add" title="Add URL  [A]">+</div>
+  <div class="b-icon" id="b-lib" title="Bookmarks  [L]">◻</div>
+  <div class="b-icon tools-icon" id="b-tools" title="HTML Tools  [T]">⊡</div>
+</div>
+<div id="boot-gear" title="Settings  [S]">⚙<span class="gear-dot"></span></div>
+<div class="boot-wm">UISHMARK · DAKARI UISH</div>
+
+<!-- WIZARD (Add URL) -->
+<div id="overlay">
+  <div id="wizard">
+    <div class="wh">
+      <span class="wh-lbl">add_mark</span>
+      <span class="wh-stp" id="wh-stp">01 / 03</span>
+      <button class="ic-btn" id="wh-x">✕</button>
+    </div>
+    <div class="step active" id="step-1">
+      <div class="fl">URL</div>
+      <input class="fi" id="url-in" type="text" placeholder="https://example.com" autocomplete="off" spellcheck="false">
+      <div class="btn-row"><button class="btn btn-p" id="s1n">Next →</button></div>
+    </div>
+    <div class="step" id="step-2">
+      <div class="prev-block"><div class="prev-d" id="prev-d"></div><div class="prev-t" id="prev-t"></div></div>
+      <div class="fl">Title</div>
+      <input class="fi" id="title-in" type="text" placeholder="Page title" autocomplete="off">
+      <div class="fl" style="margin-top:14px">Tags <span style="font-size:8px;color:var(--mu)">(select or create)</span></div>
+      <div class="tag-row" id="wiz-tags"></div>
+      <input class="fi" id="tag-in" type="text" placeholder="+ type a new tag, press Enter" style="margin-top:8px">
+      <div class="btn-row"><button class="btn btn-g" id="s2b">← Back</button><button class="btn btn-p" id="s2n">Preview →</button></div>
+    </div>
+    <div class="step" id="step-3">
+      <div class="prev-block">
+        <div class="prev-d" id="conf-d"></div>
+        <div class="prev-t" id="conf-t"></div>
+        <div id="conf-tags" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-g" id="s3b">← Back</button><button class="btn btn-p" id="s3s">Save ↵</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKMARKS LIBRARY -->
+<div id="library" class="panel">
+  <div class="ph">
+    <span class="ph-title">Bookmarks</span>
+    <input class="ph-search" id="lib-search" placeholder="search…" autocomplete="off">
+    <span class="ph-count" id="lib-count">0 marks</span>
+    <button class="ph-btn" id="lh-add">+ Add</button>
+    <button class="ph-btn" id="lh-settings">⚙ Settings</button>
+    <button class="ph-btn" id="lh-help">? Help</button>
+    <button class="ph-btn" id="lib-close">✕ Close</button>
+  </div>
+  <div id="tag-bar"></div>
+  <div class="pb">
+    <div class="sort-row">
+      <span class="sort-lbl">Sort</span>
+      <button class="sort-btn active" data-sort="newest">Newest</button>
+      <button class="sort-btn" data-sort="oldest">Oldest</button>
+      <button class="sort-btn" data-sort="az">A–Z</button>
+      <button class="sort-btn" data-sort="visited">Most visited</button>
+      <button class="sort-btn" data-sort="pinned">Pinned first</button>
+    </div>
+    <div id="cards-grid"></div>
+  </div>
+  <div class="panel-tools">
+    <button class="btn-tool" id="btn-expj">↓ Export JSON</button>
+    <button class="btn-tool" id="btn-impo">↑ Import JSON</button>
+    <button class="btn-tool" id="btn-exph">↓ Export HTML</button>
+    <input type="file" id="imp-file" accept=".json" style="display:none">
+  </div>
+  <div class="pfooter">
+    <div class="pfooter-stats" id="lib-stats"></div>
+    <div class="pfooter-sig">DAKARI UISH</div>
+  </div>
+</div>
+
+<!-- TOOLS LIBRARY -->
+<div id="tools-panel" class="panel">
+  <div class="ph">
+    <span class="ph-title">HTML Tools</span>
+    <input class="ph-search" id="tools-search" placeholder="search tools…" autocomplete="off">
+    <span class="ph-count" id="tools-count">0 tools</span>
+    <button class="ph-btn" id="th-add">+ Add Tool</button>
+    <button class="ph-btn" id="th-settings">⚙ Settings</button>
+    <button class="ph-btn" id="tools-close">✕ Close</button>
+  </div>
+  <div class="pb" id="tools-pb">
+    <div class="popup-warn" id="popup-warn">⚠ If launching tools is blocked, allow pop-ups for this page in your browser settings. Single-file HTML tools open in a new tab.</div>
+    <div id="tools-drop" title="Click or drag a .html file here">
+      <div id="tools-drop-icon">⊡</div>
+      <div id="tools-drop-msg">Drop or click to add a tool</div>
+      <div id="tools-drop-sub">.html files only</div>
+    </div>
+    <div id="tools-grid"></div>
+  </div>
+  <div class="panel-tools">
+    <button class="btn-tool" id="tl-export">↓ Export all tools</button>
+    <input type="file" id="tool-file" accept=".html,text/html" style="display:none">
+  </div>
+  <div class="pfooter">
+    <div class="pfooter-stats" id="tools-stats"></div>
+    <div class="pfooter-sig">DAKARI UISH</div>
+  </div>
+</div>
+
+<!-- SETTINGS DRAWER -->
+<div id="sd-scrim"></div>
+<div id="settings-drawer">
+  <div class="sd-head">
+    <span class="sd-title">preferences</span>
+    <button class="ic-btn" id="sd-x">✕</button>
+  </div>
+
+  <div class="sd-sec">
+    <div class="sd-lbl">Theme</div>
+    <div class="theme-grid">
+      <div class="th-sw" data-theme="obsidian" title="Obsidian" style="--sw-t:#0d0d0d;--sw-b:#1a1a1a;border-color:#2a2a2a"></div>
+      <div class="th-sw" data-theme="terminal" title="Terminal"  style="--sw-t:#000;--sw-b:#0d0d0d;border-color:#162216"></div>
+      <div class="th-sw" data-theme="chalk"    title="Chalk"     style="--sw-t:#f4f1ec;--sw-b:#e0dbd2;border-color:#ccc6bb"></div>
+      <div class="th-sw" data-theme="glacier"  title="Glacier"   style="--sw-t:#06090f;--sw-b:#121820;border-color:#182230"></div>
+      <div class="th-sw" data-theme="dusk"     title="Dusk"      style="--sw-t:#0c080f;--sw-b:#1b1620;border-color:#26202e"></div>
+    </div>
+    <div class="theme-name" id="theme-name-lbl"></div>
+  </div>
+
+  <div class="sd-sec">
+    <div class="sd-lbl">Accent colour</div>
+    <div class="accent-row">
+      <div class="ac-dot" data-accent="amber"   style="background:#d4a843" title="Amber"></div>
+      <div class="ac-dot" data-accent="green"   style="background:#39ff14" title="Terminal"></div>
+      <div class="ac-dot" data-accent="crimson" style="background:#8b3a2e" title="Crimson"></div>
+      <div class="ac-dot" data-accent="ice"     style="background:#7eb8ff" title="Ice"></div>
+      <div class="ac-dot" data-accent="pink"    style="background:#e879f9" title="Dusk"></div>
+      <div class="ac-dot" data-accent="rose"    style="background:#fb7185" title="Rose"></div>
+      <div class="ac-dot" data-accent="emerald" style="background:#34d399" title="Emerald"></div>
+      <div class="ac-dot" data-accent="orange"  style="background:#fb923c" title="Orange"></div>
+    </div>
+  </div>
+
+  <div class="sd-sec">
+    <div class="sd-lbl">Storage backend</div>
+    <div id="storage-options">
+      <div class="storage-option" data-backend="ls">
+        <div class="so-letter">A</div>
+        <div class="so-info"><div class="so-name">localStorage</div><div class="so-desc">~5 MB · Sync · Single device/browser</div></div>
+        <div class="so-badge">Active</div>
+      </div>
+      <div class="storage-option" data-backend="idb">
+        <div class="so-letter">B</div>
+        <div class="so-info"><div class="so-name">IndexedDB</div><div class="so-desc">~250 MB+ · Async · Best for tools</div></div>
+        <div class="so-badge">Switch</div>
+      </div>
+      <div class="storage-option" data-backend="hybrid">
+        <div class="so-letter">C</div>
+        <div class="so-info"><div class="so-name">Hybrid ⭐</div><div class="so-desc">Bookmarks → localStorage · Tools → IDB</div></div>
+        <div class="so-badge">Switch</div>
+      </div>
+      <div class="storage-option" data-backend="session">
+        <div class="so-letter">D</div>
+        <div class="so-info"><div class="so-name">sessionStorage</div><div class="so-desc">~5 MB · Clears on tab close · Private</div></div>
+        <div class="so-badge">Switch</div>
+      </div>
+      <div class="storage-option" data-backend="memory">
+        <div class="so-letter">E</div>
+        <div class="so-info"><div class="so-name">Memory only</div><div class="so-desc">No persistence · Resets every load</div></div>
+        <div class="so-badge">Switch</div>
+      </div>
+    </div>
+    <div class="storage-meter">
+      <div class="sm-labels"><span id="sm-used">— KB used</span><span id="sm-total">~5 MB limit</span></div>
+      <div class="sm-bar"><div class="sm-fill" id="sm-fill" style="width:0%"></div></div>
+      <div class="sm-warn" id="sm-warn">⚠ Storage nearing limit — consider switching to B or C.</div>
+    </div>
+  </div>
+
+  <div class="sd-sec">
+    <div class="sd-lbl">Layout</div>
+    <div class="layout-row" id="layout-row">
+      <button class="layout-btn active" data-layout="grid"><span class="lb-ico">⊞</span>Grid</button>
+      <button class="layout-btn" data-layout="list"><span class="lb-ico">≡</span>List</button>
+      <button class="layout-btn" data-layout="compact"><span class="lb-ico">⊟</span>Compact</button>
+    </div>
+  </div>
+
+  <div class="sd-sec">
+    <div class="sd-lbl">Card density</div>
+    <div class="density-row" id="density-row">
+      <button class="den-btn" data-density="comfortable">Airy</button>
+      <button class="den-btn active" data-density="normal">Normal</button>
+      <button class="den-btn" data-density="compact">Dense</button>
+    </div>
+  </div>
+
+  <div class="sd-sec">
+    <div class="sd-lbl">Card info</div>
+    <label class="pref-row"><input type="checkbox" id="pv-visits"> Show visit count</label>
+    <label class="pref-row"><input type="checkbox" id="pv-tags" checked> Show tags</label>
+  </div>
+
+  <div class="sd-sec">
+    <div class="sd-lbl">Device & cross-device notes</div>
+    <div style="font-size:10px;color:var(--mu);line-height:1.6;letter-spacing:.03em">
+      All backends store data <strong style="color:var(--tx2)">per browser, per device</strong>. To move data between devices or browsers, use <em style="color:var(--tx2)">Export JSON</em> in the library and re-import on the target device.
+    </div>
+  </div>
+
+  <div class="sd-sec">
+    <div class="sd-lbl">Data</div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <button class="btn-tool" id="sd-clear-bm" style="color:var(--dg);border-color:var(--dgd);text-align:left">⚠ Clear all bookmarks</button>
+      <button class="btn-tool" id="sd-clear-tools" style="color:var(--dg);border-color:var(--dgd);text-align:left">⚠ Clear all tools</button>
+    </div>
+    <div class="stat-chips" id="sd-stats"></div>
+  </div>
+</div>
+
+<!-- HELP OVERLAY -->
+<div id="help-ov">
+  <div class="help-box">
+    <div class="help-head">
+      <span class="help-title">Keyboard shortcuts</span>
+      <button class="ic-btn" id="help-x">✕</button>
+    </div>
+    <div class="help-row"><span class="help-key"><kbd>A</kbd></span><span class="help-desc">Open Add URL wizard</span></div>
+    <div class="help-row"><span class="help-key"><kbd>L</kbd></span><span class="help-desc">Open Bookmarks library</span></div>
+    <div class="help-row"><span class="help-key"><kbd>T</kbd></span><span class="help-desc">Open HTML Tools library</span></div>
+    <div class="help-row"><span class="help-key"><kbd>S</kbd></span><span class="help-desc">Open Settings (anywhere)</span></div>
+    <div class="help-row"><span class="help-key"><kbd>?</kbd></span><span class="help-desc">Toggle this help panel</span></div>
+    <div class="help-row"><span class="help-key"><kbd>/</kbd> or type anything</span><span class="help-desc">Open command bar</span></div>
+    <div class="help-row"><span class="help-key"><kbd>ESC</kbd></span><span class="help-desc">Close active panel</span></div>
+    <div class="help-row"><span class="help-key"><kbd>Enter</kbd></span><span class="help-desc">Advance wizard / run command</span></div>
+    <div class="help-section">Commands</div>
+    <div class="help-row"><span class="help-key">add &lt;url&gt;</span><span class="help-desc">Quick-save a URL</span></div>
+    <div class="help-row"><span class="help-key">list</span><span class="help-desc">Open bookmarks library</span></div>
+    <div class="help-row"><span class="help-key">tools</span><span class="help-desc">Open tools library</span></div>
+    <div class="help-row"><span class="help-key">clear</span><span class="help-desc">Wipe all bookmarks</span></div>
+    <div class="help-section">Tools library</div>
+    <div class="help-row"><span class="help-key">Drag &amp; drop</span><span class="help-desc">Drop .html onto tools panel to add</span></div>
+    <div class="help-row"><span class="help-key">Launch</span><span class="help-desc">Opens tool in new tab via blob URL</span></div>
+  </div>
+</div>
+
+<!-- MIGRATION MODAL -->
+<div id="migrate-modal">
+  <div class="mm-box">
+    <div class="mm-title">Migrate storage?</div>
+    <div class="mm-body" id="mm-body">Would you like to copy your existing data to the new backend?</div>
+    <div class="btn-row">
+      <button class="btn btn-p" id="mm-yes">Migrate data</button>
+      <button class="btn btn-g" id="mm-no">Switch, keep old data</button>
+      <button class="btn btn-g" id="mm-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- SYSTEM -->
+<div id="toast"></div>
+<div id="drop-zone">DROP JSON TO IMPORT</div>
+<div id="cmd-bar">
+  <input id="cmd-in" placeholder="add https://…  ·  list  ·  tools  ·  help" autocomplete="off">
+  <div id="cmd-hint">ESC dismiss · ENTER execute</div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════
+   UISHMARK v3 · DAKARI UISH
+══════════════════════════════════════════════════ */
+const BM_KEY   = 'UISHMARK_DATA_V1';
+const TL_KEY   = 'UISHMARK_TOOLS_V1';
+const PREF_KEY = 'UISHMARK_PREFS_V1';
+
+const $  = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const uuid = () => crypto.randomUUID
+  ? crypto.randomUUID()
+  : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)});
+const cleanUrl = s => {
+  s=(s||'').trim();if(!s)return null;
+  if(!/^https?:\/\//i.test(s))s='https://'+s;
+  try{new URL(s);return s}catch{return null}
+};
+const dom = url => {try{return new URL(url).hostname.replace(/^www\./,'')}catch{return url}};
+const fav = url => `https://www.google.com/s2/favicons?domain=${dom(url)}&sz=16`;
+const fmtSize = b => b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(2)+' MB';
+const timeAgo = ts => {const s=Math.floor((Date.now()-ts)/1000);if(s<60)return 'just now';const m=Math.floor(s/60);if(m<60)return m+'m ago';const h=Math.floor(m/60);if(h<24)return h+'h ago';const d=Math.floor(h/24);if(d<30)return d+'d ago';return Math.floor(d/30)+'mo ago'};
+const extractTitle = html => {const m=html.match(/<title[^>]*>([^<]+)<\/title>/i);return m?m[1].trim():'Untitled Tool'};
+
+/* ══════════ ACCENT MAP ══════════ */
+const ACCENTS = {
+  amber:{rgb:'212,168,67',hex:'#d4a843'},green:{rgb:'57,255,20',hex:'#39ff14'},
+  crimson:{rgb:'139,58,46',hex:'#8b3a2e'},ice:{rgb:'126,184,255',hex:'#7eb8ff'},
+  pink:{rgb:'232,121,249',hex:'#e879f9'},rose:{rgb:'251,113,133',hex:'#fb7185'},
+  emerald:{rgb:'52,211,153',hex:'#34d399'},orange:{rgb:'251,146,60',hex:'#fb923c'},
+};
+const THEME_NAMES = {obsidian:'Obsidian',terminal:'Terminal',chalk:'Chalk',glacier:'Glacier',dusk:'Dusk'};
+const BACKEND_NAMES = {ls:'localStorage',idb:'IndexedDB',hybrid:'Hybrid',session:'sessionStorage',memory:'Memory'};
+
+/* ══════════ INDEXEDDB WRAPPER ══════════ */
+const IDB = {
+  db: null,
+  async open() {
+    if (this.db) return;
+    await new Promise((resolve, reject) => {
+      const req = indexedDB.open('UISHMARK_IDB_V1', 1);
+      req.onupgradeneeded = e => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('bookmarks')) db.createObjectStore('bookmarks', {keyPath:'id'});
+        if (!db.objectStoreNames.contains('tools'))     db.createObjectStore('tools',     {keyPath:'id'});
+      };
+      req.onsuccess = e => { this.db = e.target.result; resolve(); };
+      req.onerror   = e => reject(e.target.error);
+    });
+  },
+  async getAll(store) {
+    await this.open();
+    return new Promise((res,rej)=>{const req=this.db.transaction(store,'readonly').objectStore(store).getAll();req.onsuccess=e=>res(e.target.result||[]);req.onerror=e=>rej(e.target.error)});
+  },
+  async putAll(store, items) {
+    await this.open();
+    return new Promise((res,rej)=>{
+      const tx=this.db.transaction(store,'readwrite');const os=tx.objectStore(store);
+      os.clear();items.forEach(i=>os.put(i));
+      tx.oncomplete=res;tx.onerror=e=>rej(e.target.error);
+    });
+  },
+  async put(store, item) {
+    await this.open();
+    return new Promise((res,rej)=>{const req=this.db.transaction(store,'readwrite').objectStore(store).put(item);req.onsuccess=res;req.onerror=e=>rej(e.target.error)});
+  },
+  async delete(store, id) {
+    await this.open();
+    return new Promise((res,rej)=>{const req=this.db.transaction(store,'readwrite').objectStore(store).delete(id);req.onsuccess=res;req.onerror=e=>rej(e.target.error)});
+  },
+  async clearStore(store) {
+    await this.open();
+    return new Promise((res,rej)=>{const req=this.db.transaction(store,'readwrite').objectStore(store).clear();req.onsuccess=res;req.onerror=e=>rej(e.target.error)});
+  },
+};
+
+/* ══════════ STORAGE ENGINE ══════════ */
+// backend: ls | idb | hybrid | session | memory
+const SE = {
+  backend: 'ls',
+  _mem:    { bm: [], tools: [] },
+
+  // ── READ ──
+  async getBookmarks() {
+    const b = this.backend;
+    if (b === 'ls')      return this._parseLs(localStorage.getItem(BM_KEY));
+    if (b === 'session') return this._parseLs(sessionStorage.getItem(BM_KEY));
+    if (b === 'memory')  return this._mem.bm;
+    if (b === 'idb')     return await IDB.getAll('bookmarks');
+    if (b === 'hybrid')  return this._parseLs(localStorage.getItem(BM_KEY));
+    return [];
+  },
+  async getTools() {
+    const b = this.backend;
+    if (b === 'ls')      return this._parseLs(sessionStorage.getItem(TL_KEY)) || this._parseLs(localStorage.getItem(TL_KEY));
+    if (b === 'session') return this._parseLs(sessionStorage.getItem(TL_KEY));
+    if (b === 'memory')  return this._mem.tools;
+    if (b === 'idb')     return await IDB.getAll('tools');
+    if (b === 'hybrid')  return await IDB.getAll('tools'); // tools in IDB
+    return [];
+  },
+
+  // ── WRITE ──
+  async saveBookmarks(arr) {
+    const b = this.backend;
+    const json = JSON.stringify(arr);
+    if (b === 'ls')      { localStorage.setItem(BM_KEY, json); }
+    if (b === 'session') { sessionStorage.setItem(BM_KEY, json); }
+    if (b === 'memory')  { this._mem.bm = arr; }
+    if (b === 'idb')     { await IDB.putAll('bookmarks', arr); }
+    if (b === 'hybrid')  { localStorage.setItem(BM_KEY, json); }
+    this._updateMeter();
+  },
+  async saveTools(arr) {
+    const b = this.backend;
+    const json = JSON.stringify(arr);
+    if (b === 'ls')      { localStorage.setItem(TL_KEY, json); }
+    if (b === 'session') { sessionStorage.setItem(TL_KEY, json); }
+    if (b === 'memory')  { this._mem.tools = arr; }
+    if (b === 'idb')     { await IDB.putAll('tools', arr); }
+    if (b === 'hybrid')  { await IDB.putAll('tools', arr); }
+    this._updateMeter();
+  },
+
+  // ── MIGRATE ──
+  async migrate(fromBm, fromTools, toBackend) {
+    const prev = this.backend;
+    this.backend = toBackend;
+    await this.saveBookmarks(fromBm);
+    await this.saveTools(fromTools);
+    this.backend = prev; // caller will set final
+  },
+
+  _parseLs(str) {
+    if (!str) return [];
+    try { const p = JSON.parse(str); return Array.isArray(p) ? p : (p && Array.isArray(p.bookmarks)) ? p.bookmarks : []; }
+    catch { return []; }
+  },
+
+  _updateMeter() {
+    const b = this.backend;
+    const warn = $('sm-warn'); const fill = $('sm-fill');
+    const used_el = $('sm-used'); const total_el = $('sm-total');
+    if (b === 'ls' || b === 'hybrid') {
+      let total = 0;
+      for (const k of Object.keys(localStorage)) total += (k.length + (localStorage.getItem(k)||'').length) * 2;
+      const mb = total / 1048576; const pct = Math.min(100, (mb / 5) * 100);
+      used_el.textContent = fmtSize(total) + ' used';
+      total_el.textContent = '~5 MB limit';
+      fill.style.width = pct + '%';
+      fill.style.background = pct > 80 ? '#e05c52' : pct > 60 ? '#f0a030' : 'var(--ac)';
+      warn.classList.toggle('show', pct > 80);
+      $('boot-gear').classList.toggle('warn', pct > 80);
+    } else if (b === 'session') {
+      let total = 0;
+      for (const k of Object.keys(sessionStorage)) total += (k.length + (sessionStorage.getItem(k)||'').length) * 2;
+      const mb = total / 1048576; const pct = Math.min(100, (mb / 5) * 100);
+      used_el.textContent = fmtSize(total) + ' used (session)';
+      total_el.textContent = '~5 MB limit';
+      fill.style.width = pct + '%';
+      fill.style.background = pct > 80 ? '#e05c52' : 'var(--ac)';
+      warn.classList.toggle('show', pct > 80);
+      $('boot-gear').classList.remove('warn');
+    } else if (b === 'idb') {
+      used_el.textContent = '—';
+      total_el.textContent = '~250 MB+ (IndexedDB)';
+      fill.style.width = '0%';
+      warn.classList.remove('show');
+      $('boot-gear').classList.remove('warn');
+      if (navigator.storage && navigator.storage.estimate) {
+        navigator.storage.estimate().then(({usage, quota}) => {
+          if (usage && quota) {
+            const pct = Math.min(100, (usage/quota)*100);
+            used_el.textContent = fmtSize(usage) + ' used (origin)';
+            total_el.textContent = fmtSize(quota) + ' quota';
+            fill.style.width = pct + '%';
+          }
+        }).catch(()=>{});
+      }
+    } else { // memory
+      used_el.textContent = 'Memory only — no persistence';
+      total_el.textContent = '';
+      fill.style.width = '0%';
+      warn.classList.remove('show');
+      $('boot-gear').classList.remove('warn');
+    }
+  },
+};
+
+/* ══════════ PREFS ══════════ */
+const pstore = {
+  load(){try{return JSON.parse(localStorage.getItem(PREF_KEY))||{}}catch{return{}}},
+  save(p){try{localStorage.setItem(PREF_KEY,JSON.stringify(p))}catch{}},
+};
+
+/* ══════════ APP STATE ══════════ */
+const S = {
+  bm:    [],
+  tools: [],
+  prefs: Object.assign({
+    theme:'obsidian',layout:'grid',density:'normal',sort:'newest',
+    accent:'amber',showVisits:false,showTags:true,backend:'ls'
+  }, pstore.load()),
+  wUrl:'',wTitle:'',wTags:[],
+  step:1,filter:'',tagFilter:'',
+  toolsFilter:'',
+  ctxEl:null, allTags:[],
+  migrateCallback: null,
+};
+const selTags = new Set();
+const savePrefs = () => pstore.save(S.prefs);
+const computeTags = () => {const s=new Set();S.bm.forEach(b=>(b.tags||[]).forEach(t=>s.add(t)));S.allTags=[...s].sort()};
+
+/* ══════════ TOAST ══════════ */
+let _tt;
+const toast = (msg, ms=2300) => {const el=$('toast');el.textContent=msg;el.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('show'),ms)};
+const shake = id => {const el=$(id);el.classList.add('shake');setTimeout(()=>el.classList.remove('shake'),380)};
+
+/* ══════════ APPLY PREFS ══════════ */
+const applyPrefs = () => {
+  const r = document.documentElement;
+  r.dataset.theme   = S.prefs.theme;
+  r.dataset.layout  = S.prefs.layout;
+  r.dataset.density = S.prefs.density;
+  const ac = ACCENTS[S.prefs.accent] || ACCENTS.amber;
+  r.style.setProperty('--ac',  ac.hex);
+  r.style.setProperty('--acr', ac.rgb);
+  r.style.setProperty('--acd', `rgba(${ac.rgb},.11)`);
+  r.style.setProperty('--acg', `rgba(${ac.rgb},.22)`);
+  document.querySelectorAll('.layout-btn').forEach(b=>b.classList.toggle('active',b.dataset.layout===S.prefs.layout));
+  document.querySelectorAll('.den-btn').forEach(b=>b.classList.toggle('active',b.dataset.density===S.prefs.density));
+  document.querySelectorAll('.th-sw').forEach(b=>b.classList.toggle('active',b.dataset.theme===S.prefs.theme));
+  document.querySelectorAll('.ac-dot').forEach(b=>b.classList.toggle('active',b.dataset.accent===S.prefs.accent));
+  $('theme-name-lbl').textContent = THEME_NAMES[S.prefs.theme] || '';
+  $('pv-visits').checked = S.prefs.showVisits;
+  $('pv-tags').checked   = S.prefs.showTags;
+  // storage options
+  document.querySelectorAll('.storage-option').forEach(o=>{
+    const active = o.dataset.backend === S.prefs.backend;
+    o.classList.toggle('active', active);
+    o.querySelector('.so-badge').textContent = active ? 'Active' : 'Switch';
+  });
+  SE.backend = S.prefs.backend;
+  SE._updateMeter();
+};
+
+/* ══════════ BOOKMARKS ══════════ */
+const bm = {
+  add(url,title,tags=[]){
+    if(S.bm.find(b=>b.url===url)){toast('Already saved: '+dom(url));return null}
+    const mk={id:uuid(),url,title:title||dom(url),created:Date.now(),tags:[...tags],notes:'',visits:0,lastOpened:null,pinned:false};
+    S.bm.unshift(mk);SE.saveBookmarks(S.bm);computeTags();return mk;
+  },
+  delete(id){S.bm=S.bm.filter(b=>b.id!==id);SE.saveBookmarks(S.bm);computeTags()},
+  open(id){const b=S.bm.find(b=>b.id===id);if(!b)return;b.visits++;b.lastOpened=Date.now();SE.saveBookmarks(S.bm);window.open(b.url,'_blank','noopener,noreferrer')},
+  pin(id){const b=S.bm.find(b=>b.id===id);if(!b)return;b.pinned=!b.pinned;SE.saveBookmarks(S.bm)},
+};
+
+/* ══════════ TOOLS ══════════ */
+const tools = {
+  add(html, name, desc=''){
+    if(S.tools.find(t=>t.name===name)){
+      // auto-suffix duplicate names
+      let i=2;while(S.tools.find(t=>t.name===name+' '+i))i++;
+      name=name+' '+i;
+    }
+    const size = new Blob([html]).size;
+    const tool = {id:uuid(),name,desc,html,size,created:Date.now(),opens:0,lastOpened:null};
+    S.tools.unshift(tool);
+    SE.saveTools(S.tools);
+    return tool;
+  },
+  delete(id){S.tools=S.tools.filter(t=>t.id!==id);SE.saveTools(S.tools)},
+  launch(id){
+    const t=S.tools.find(t=>t.id===id);if(!t)return;
+    t.opens++;t.lastOpened=Date.now();SE.saveTools(S.tools);
+    // Try document.write approach first — most reliable for single-file HTML
+    const w=window.open('','_blank','noopener');
+    if(!w){
+      toast('⚠ Pop-up blocked. Allow pop-ups for this page.',4000);
+      $('popup-warn').classList.add('visible');
+      return;
+    }
+    try{
+      w.document.open('text/html','replace');
+      w.document.write(t.html);
+      w.document.close();
+    }catch(e){
+      // fallback: blob URL
+      const blob=new Blob([t.html],{type:'text/html;charset=utf-8'});
+      const url=URL.createObjectURL(blob);
+      w.location.href=url;
+      setTimeout(()=>URL.revokeObjectURL(url),15000);
+    }
+    toolsLib.render();
+  },
+  export(id){
+    const t=S.tools.find(t=>t.id===id);if(!t)return;
+    const blob=new Blob([t.html],{type:'text/html;charset=utf-8'});
+    dl(URL.createObjectURL(blob),t.name.replace(/[^a-z0-9]/gi,'-').toLowerCase()+'.html');
+    toast('Exported: '+t.name);
+  },
+};
+
+/* ══════════ WIZARD ══════════ */
+const wiz = {
+  open(){
+    S.step=1;S.wUrl='';S.wTitle='';selTags.clear();
+    $('url-in').value='';$('title-in').value='';$('tag-in').value='';
+    wiz.renderWizTags();wiz.goto(1);
+    $('overlay').classList.add('open');
+    setTimeout(()=>$('url-in').focus(),60);
+  },
+  close(){$('overlay').classList.remove('open')},
+  goto(n){
+    S.step=n;
+    document.querySelectorAll('.step').forEach((el,i)=>el.classList.toggle('active',i+1===n));
+    $('wh-stp').textContent=['01 / 03','02 / 03','03 / 03'][n-1];
+  },
+  renderWizTags(){
+    $('wiz-tags').innerHTML=S.allTags.map(t=>`<div class="tag-chip${selTags.has(t)?' selected':''}" data-t="${esc(t)}">${esc(t)}</div>`).join('');
+  },
+  s1(){
+    const url=cleanUrl($('url-in').value);
+    if(!url){shake('url-in');return}
+    S.wUrl=url;
+    $('prev-d').textContent=dom(url);$('prev-t').textContent='Fetching…';
+    $('title-in').value='';
+    Promise.race([
+      fetch(url,{mode:'no-cors'}).then(()=>dom(url)).catch(()=>dom(url)),
+      new Promise(r=>setTimeout(()=>r(dom(url)),2500))
+    ]).then(t=>{S.wTitle=t;$('prev-t').textContent=t;if(!$('title-in').value)$('title-in').value=t});
+    wiz.goto(2);setTimeout(()=>$('title-in').focus(),60);
+  },
+  s2(){
+    const t=($('title-in').value.trim())||dom(S.wUrl);
+    if(!t){shake('title-in');return}
+    S.wTitle=t;S.wTags=[...selTags];
+    $('conf-d').textContent=dom(S.wUrl);$('conf-t').textContent=t;
+    $('conf-tags').innerHTML=S.wTags.map(t=>`<span class="c-tag">${esc(t)}</span>`).join('');
+    wiz.goto(3);
+  },
+  save(){
+    const mk=bm.add(S.wUrl,S.wTitle,S.wTags);
+    if(mk){wiz.close();toast('Saved → '+dom(S.wUrl));if($('library').classList.contains('open'))lib.render()}
+  },
+};
+
+/* ══════════ BOOKMARKS LIBRARY ══════════ */
+const lib = {
+  open(){$('library').classList.add('open');$('lib-search').value='';S.filter='';S.tagFilter='';lib.render();setTimeout(()=>$('lib-search').focus(),120)},
+  close(){$('library').classList.remove('open')},
+  render(){
+    computeTags();
+    const f=S.filter.toLowerCase();
+    let marks=[...S.bm];
+    if(f)marks=marks.filter(b=>b.title.toLowerCase().includes(f)||b.url.toLowerCase().includes(f)||(b.tags||[]).some(t=>t.toLowerCase().includes(f)));
+    if(S.tagFilter)marks=marks.filter(b=>(b.tags||[]).includes(S.tagFilter));
+    switch(S.prefs.sort){
+      case'oldest': marks.sort((a,b)=>a.created-b.created);break;
+      case'az':     marks.sort((a,b)=>a.title.localeCompare(b.title));break;
+      case'visited':marks.sort((a,b)=>b.visits-a.visits);break;
+      case'pinned': marks.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));break;
+      default:      marks.sort((a,b)=>b.created-a.created);
+    }
+    const total=S.bm.length;
+    $('lib-count').textContent=f||S.tagFilter?`${marks.length}/${total} marks`:`${total} mark${total===1?'':'s'}`;
+    const tb=$('tag-bar');
+    tb.innerHTML=S.allTags.length?'<span class="tb-lbl">Tags</span>'+S.allTags.map(t=>`<div class="tb-chip${S.tagFilter===t?' active':''}" data-t="${esc(t)}">${esc(t)}</div>`).join(''):'';
+    const tv=S.bm.reduce((s,b)=>s+b.visits,0);
+    const pn=S.bm.filter(b=>b.pinned).length;
+    $('lib-stats').textContent=`${total} saved · ${tv} opens${pn?' · '+pn+' pinned':''}`;
+    $('sd-stats').innerHTML=`<div class="sc"><span>${total}</span> marks</div><div class="sc"><span>${S.tools.length}</span> tools</div><div class="sc"><span>${S.allTags.length}</span> tags</div><div class="sc"><span>${tv}</span> opens</div>`;
+    const grid=$('cards-grid');
+    if(!marks.length){grid.innerHTML=`<div class="lib-empty"><div class="lib-empty-sym">◻</div><div class="lib-empty-msg">${f||S.tagFilter?'no results':'empty library'}</div></div>`;return}
+    grid.innerHTML=marks.map((b,i)=>{
+      const tagHtml=S.prefs.showTags&&(b.tags||[]).length?`<div class="card-tags">${b.tags.map(t=>`<span class="c-tag">${esc(t)}</span>`).join('')}</div>`:'';
+      const metaHtml=S.prefs.showVisits&&b.visits>0?`<div class="card-meta">${b.visits} open${b.visits===1?'':'s'} · ${timeAgo(b.lastOpened||b.created)}</div>`:'';
+      return`<div class="bm-card${b.pinned?' pinned':''}" data-id="${b.id}" style="animation-delay:${Math.min(i,22)*34}ms">
+        <div class="card-main">
+          <div class="card-top">
+            <img class="card-fav" src="${fav(b.url)}" onerror="this.style.display='none'" alt="">
+            <div class="card-title">${esc(b.title)}</div>
+            ${b.pinned?'<div class="card-pin-icon">↑</div>':''}
+          </div>
+          <div class="card-domain">${esc(dom(b.url))}</div>
+          ${tagHtml}${metaHtml}
+        </div>
+        <div class="card-actions">
+          <button class="c-btn c-btn-open" data-act="open" data-id="${b.id}">Open</button>
+          <button class="c-btn c-btn-pin"  data-act="pin"  data-id="${b.id}" title="${b.pinned?'Unpin':'Pin'}">${b.pinned?'★':'☆'}</button>
+          <button class="c-btn c-btn-menu" data-act="menu" data-id="${b.id}">⋮</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+};
+
+/* ══════════ TOOLS LIBRARY ══════════ */
+const toolsLib = {
+  open(){$('tools-panel').classList.add('open');$('tools-search').value='';S.toolsFilter='';toolsLib.render();setTimeout(()=>$('tools-search').focus(),120)},
+  close(){$('tools-panel').classList.remove('open')},
+  render(){
+    const f=S.toolsFilter.toLowerCase();
+    let ts=[...S.tools];
+    if(f)ts=ts.filter(t=>t.name.toLowerCase().includes(f)||(t.desc||'').toLowerCase().includes(f));
+    $('tools-count').textContent=f?`${ts.length}/${S.tools.length} tools`:`${S.tools.length} tool${S.tools.length===1?'':'s'}`;
+    const totalSize=S.tools.reduce((s,t)=>s+t.size,0);
+    $('tools-stats').textContent=`${S.tools.length} tools · ${fmtSize(totalSize)} total`;
+    const grid=$('tools-grid');
+    if(!ts.length){
+      grid.innerHTML=`<div class="lib-empty"><div class="lib-empty-sym">⊡</div><div class="lib-empty-msg">${f?'no results':'no tools yet — drop a .html file above'}</div></div>`;
+      return;
+    }
+    // max size for relative bar
+    const maxSize=Math.max(...ts.map(t=>t.size),1);
+    grid.innerHTML=ts.map((t,i)=>{
+      const pct=Math.min(100,(t.size/maxSize)*100);
+      return`<div class="tool-card" data-tid="${t.id}" style="animation-delay:${Math.min(i,18)*36}ms">
+        <div class="tool-card-head">
+          <div class="tool-icon">⊡</div>
+          <div>
+            <div class="tool-name">${esc(t.name)}</div>
+            ${t.desc?`<div class="tool-desc">${esc(t.desc)}</div>`:''}
+          </div>
+        </div>
+        <div class="tool-meta">
+          <div class="tool-meta-item">Size <span>${fmtSize(t.size)}</span></div>
+          <div class="tool-meta-item">Added <span>${timeAgo(t.created)}</span></div>
+          ${t.opens?`<div class="tool-meta-item">Launches <span>${t.opens}</span></div>`:''}
+        </div>
+        <div class="tool-size-bar"><div class="tool-size-fill" style="width:${pct}%"></div></div>
+        <div class="tool-actions">
+          <button class="c-btn tc-btn-launch" data-act="launch" data-tid="${t.id}">▶ Launch</button>
+          <button class="c-btn" data-act="tdl"  data-tid="${t.id}" title="Export .html">↓</button>
+          <button class="c-btn c-btn-menu" data-act="tmenu" data-tid="${t.id}">⋮</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+};
+
+/* ══════════ ADD TOOL FROM FILE ══════════ */
+const addToolFromFile = file => {
+  if (!file || !file.name.endsWith('.html')) { toast('Only .html files accepted'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const html = e.target.result;
+    const name = extractTitle(html) || file.name.replace(/\.html$/i,'');
+    const size = new Blob([html]).size;
+    if (size > 10 * 1048576) { toast('File too large (max 10 MB)'); return; }
+    // Warn if using localStorage and size > 200 KB
+    if ((S.prefs.backend === 'ls' || S.prefs.backend === 'session') && size > 204800) {
+      toast('⚠ Large tool ('+fmtSize(size)+'). Consider switching to backend B or C.', 4000);
+    }
+    tools.add(html, name);
+    toolsLib.render();
+    toast('Tool added: '+name);
+  };
+  reader.readAsText(file);
+};
+
+/* ══════════ CONTEXT MENUS ══════════ */
+const ctx = {
+  show(id, x, y){
+    ctx.close();
+    const b=S.bm.find(b=>b.id===id);
+    const m=document.createElement('div');m.className='ctx-menu';
+    m.innerHTML=`<div class="ctx-item" data-c="copy" data-id="${id}">Copy URL</div>
+      <div class="ctx-item" data-c="opn"  data-id="${id}">Open in tab</div>
+      <div class="ctx-sep"></div>
+      <div class="ctx-item" data-c="pin"  data-id="${id}">${b&&b.pinned?'☆ Unpin':'★ Pin to top'}</div>
+      <div class="ctx-sep"></div>
+      <div class="ctx-item danger" data-c="del" data-id="${id}">Delete</div>`;
+    m.style.left=Math.min(x,innerWidth-160)+'px';
+    m.style.top=Math.min(y,innerHeight-130)+'px';
+    document.body.appendChild(m);S.ctxEl=m;
+  },
+  showTool(tid, x, y){
+    ctx.close();
+    const t=S.tools.find(t=>t.id===tid);
+    const m=document.createElement('div');m.className='ctx-menu';
+    m.innerHTML=`<div class="ctx-item" data-c="tlaunch" data-tid="${tid}">▶ Launch</div>
+      <div class="ctx-item" data-c="tdl" data-tid="${tid}">↓ Export .html</div>
+      <div class="ctx-sep"></div>
+      <div class="ctx-item danger" data-c="tdel" data-tid="${tid}">Delete tool</div>`;
+    m.style.left=Math.min(x,innerWidth-160)+'px';
+    m.style.top=Math.min(y,innerHeight-110)+'px';
+    document.body.appendChild(m);S.ctxEl=m;
+  },
+  close(){if(S.ctxEl){S.ctxEl.remove();S.ctxEl=null}},
+};
+
+/* ══════════ IMPORT / EXPORT ══════════ */
+const io = {
+  exportJSON(){
+    const d={bookmarks:S.bm};
+    const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+    dl(URL.createObjectURL(b),`uishmarks-${Date.now()}.json`);
+    toast('Exported '+S.bm.length+' marks');
+  },
+  exportHTML(){
+    const rows=S.bm.map(b=>`  <DT><A HREF="${esc(b.url)}" ADD_DATE="${Math.floor(b.created/1000)}">${esc(b.title)}</A>`).join('\n');
+    const h=`<!DOCTYPE NETSCAPE-Bookmark-file-1>\n<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n<TITLE>UISHmarks</TITLE>\n<H1>UISHmarks</H1>\n<DL><p>\n${rows}\n</DL><p>`;
+    const b=new Blob([h],{type:'text/html'});
+    dl(URL.createObjectURL(b),`uishmarks-${Date.now()}.html`);
+    toast('Exported as browser bookmarks HTML');
+  },
+  exportToolsBundle(){
+    const d={tools:S.tools.map(t=>({id:t.id,name:t.name,desc:t.desc,size:t.size,created:t.created}))};
+    // Export each tool as separate file would be complex; export metadata JSON + note
+    const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+    dl(URL.createObjectURL(b),`uishtools-meta-${Date.now()}.json`);
+    toast('Exported tools metadata. Export individual tools via ⋮ menu.');
+  },
+  import(raw){
+    try{
+      const p=JSON.parse(raw);
+      const src=Array.isArray(p)?p:(p&&Array.isArray(p.bookmarks))?p.bookmarks:[];
+      if(!src.length)throw new Error('no bookmarks found');
+      let n=0;
+      src.forEach(b=>{
+        const url=cleanUrl(b.url);
+        if(!url||S.bm.find(x=>x.url===url))return;
+        S.bm.push({id:uuid(),url,title:b.title||dom(url),created:b.created||Date.now(),tags:b.tags||[],notes:b.notes||'',visits:b.visits||0,lastOpened:b.lastOpened||null,pinned:b.pinned||false});
+        n++;
+      });
+      SE.saveBookmarks(S.bm);computeTags();lib.render();
+      toast('Imported '+n+' marks');
+    }catch(e){toast('Import failed: '+e.message)}
+  },
+};
+const dl = (href,name) => {const a=Object.assign(document.createElement('a'),{href,download:name});a.click();URL.revokeObjectURL(href)};
+
+/* ══════════ SETTINGS ══════════ */
+const sd = {
+  open(){$('settings-drawer').classList.add('open');$('sd-scrim').classList.add('open');SE._updateMeter()},
+  close(){$('settings-drawer').classList.remove('open');$('sd-scrim').classList.remove('open')},
+};
+
+/* ══════════ STORAGE SWITCH ══════════ */
+const switchBackend = async (to) => {
+  if (to === S.prefs.backend) return;
+  const fromName = BACKEND_NAMES[S.prefs.backend];
+  const toName   = BACKEND_NAMES[to];
+  const hasBm    = S.bm.length > 0;
+  const hasTools = S.tools.length > 0;
+  if (!hasBm && !hasTools) {
+    S.prefs.backend = to; SE.backend = to; savePrefs(); applyPrefs();
+    toast('Storage: switched to ' + toName); return;
+  }
+  // Warn about capacity
+  if ((to === 'ls' || to === 'session')) {
+    const approxToolsSize = S.tools.reduce((s,t)=>s+t.size,0);
+    if (approxToolsSize > 2 * 1048576) {
+      toast('⚠ Tools too large for '+toName+'. Try IndexedDB (B) or Hybrid (C) instead.',5000);
+      return;
+    }
+  }
+  // Show migration dialog
+  S.migrateCallback = async (migrate) => {
+    if (migrate) {
+      try {
+        const prevBe = S.prefs.backend;
+        S.prefs.backend = to; SE.backend = to;
+        await SE.saveBookmarks(S.bm);
+        await SE.saveTools(S.tools);
+        savePrefs(); applyPrefs();
+        toast('Migrated to '+toName+' ✓');
+      } catch(e) { toast('Migration failed: '+e.message); }
+    } else {
+      S.prefs.backend = to; SE.backend = to; savePrefs(); applyPrefs();
+      toast('Switched to '+toName+' (data stays in old backend)');
+    }
+    $('migrate-modal').classList.remove('open');
+  };
+  $('mm-body').innerHTML = `Switch from <strong>${fromName}</strong> to <strong>${toName}</strong>?<br><br>You have <strong>${S.bm.length} bookmarks</strong> and <strong>${S.tools.length} tools</strong>. Would you like to copy them to the new backend?`;
+  $('migrate-modal').classList.add('open');
+};
+
+/* ══════════ COMMAND MODE ══════════ */
+const cmd = {
+  open(){$('cmd-bar').classList.add('open');$('cmd-in').value='';$('cmd-in').focus()},
+  close(){$('cmd-bar').classList.remove('open')},
+  run(raw){
+    raw=raw.trim();if(!raw){cmd.close();return}
+    if(raw.startsWith('add ')){const url=cleanUrl(raw.slice(4));if(url){const m=bm.add(url,dom(url));if(m)toast('Saved → '+dom(url))}else toast('Invalid URL');cmd.close()}
+    else if(raw==='list'||raw==='ls'){cmd.close();lib.open()}
+    else if(raw==='tools'){cmd.close();toolsLib.open()}
+    else if(raw==='clear'){S.bm=[];SE.saveBookmarks(S.bm);lib.render();toast('Bookmarks cleared');cmd.close()}
+    else if(raw==='help'){cmd.close();$('help-ov').classList.add('open')}
+    else{const url=cleanUrl(raw);if(url){const m=bm.add(url,dom(url));if(m)toast('Saved → '+dom(url))}else toast('Unknown. Try: add <url>  ·  list  ·  tools  ·  help');cmd.close()}
+  },
+};
+
+/* ══════════════════════════════════════════
+   EVENT WIRING
+══════════════════════════════════════════ */
+
+// Boot
+$('b-add').onclick   = () => wiz.open();
+$('b-lib').onclick   = () => lib.open();
+$('b-tools').onclick = () => toolsLib.open();
+$('boot-gear').onclick = () => sd.open();
+
+// Wizard
+$('wh-x').onclick = () => wiz.close();
+$('overlay').addEventListener('click', e => { if(e.target===$('overlay'))wiz.close() });
+$('s1n').onclick = () => wiz.s1();
+$('s2b').onclick = () => wiz.goto(1); $('s2n').onclick = () => wiz.s2();
+$('s3b').onclick = () => wiz.goto(2); $('s3s').onclick = () => wiz.save();
+$('url-in').addEventListener('keydown',   e=>{ if(e.key==='Enter')wiz.s1() });
+$('title-in').addEventListener('keydown', e=>{ if(e.key==='Enter')wiz.s2() });
+$('wiz-tags').addEventListener('click', e=>{
+  const c=e.target.closest('[data-t]');if(!c)return;
+  const t=c.dataset.t;selTags.has(t)?selTags.delete(t):selTags.add(t);wiz.renderWizTags();
+});
+$('tag-in').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){const v=$('tag-in').value.trim().toLowerCase();if(v){selTags.add(v);if(!S.allTags.includes(v))S.allTags.push(v);$('tag-in').value='';wiz.renderWizTags()}}
+});
+
+// Bookmarks library
+$('lib-close').onclick  = () => lib.close();
+$('lh-add').onclick     = () => wiz.open();
+$('lh-settings').onclick= () => sd.open();
+$('lh-help').onclick    = () => $('help-ov').classList.add('open');
+$('lib-search').addEventListener('input', e=>{ S.filter=e.target.value; lib.render() });
+$('tag-bar').addEventListener('click', e=>{
+  const c=e.target.closest('[data-t]');if(!c)return;
+  S.tagFilter=S.tagFilter===c.dataset.t?'':c.dataset.t;lib.render();
+});
+document.querySelectorAll('.sort-btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.sort-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');S.prefs.sort=b.dataset.sort;savePrefs();lib.render();
+}));
+
+// Bookmark cards
+$('cards-grid').addEventListener('click', e=>{
+  const btn=e.target.closest('[data-act]');
+  if(btn){
+    e.stopPropagation();const{act,id}=btn.dataset;
+    if(act==='open')bm.open(id);
+    if(act==='pin'){bm.pin(id);lib.render()}
+    if(act==='menu'){const r=btn.getBoundingClientRect();ctx.show(id,r.left,r.bottom+5)}
+    return;
+  }
+  const card=e.target.closest('.bm-card');if(card)bm.open(card.dataset.id);
+});
+
+// Tools library
+$('tools-close').onclick = () => toolsLib.close();
+$('th-add').onclick = () => $('tool-file').click();
+$('th-settings').onclick = () => sd.open();
+$('tools-search').addEventListener('input', e=>{ S.toolsFilter=e.target.value; toolsLib.render() });
+$('tool-file').addEventListener('change', e=>{ const f=e.target.files[0];if(f)addToolFromFile(f);e.target.value='' });
+
+// Tools drop zone (inside panel)
+$('tools-drop').addEventListener('click', ()=>$('tool-file').click());
+$('tools-drop').addEventListener('dragover', e=>{e.preventDefault();e.stopPropagation();$('tools-drop').classList.add('drag-over')});
+$('tools-drop').addEventListener('dragleave', e=>{$('tools-drop').classList.remove('drag-over')});
+$('tools-drop').addEventListener('drop', e=>{
+  e.preventDefault();e.stopPropagation();$('tools-drop').classList.remove('drag-over');
+  const f=e.dataTransfer.files[0];if(f)addToolFromFile(f);
+});
+
+// Tool cards delegation
+$('tools-grid').addEventListener('click', e=>{
+  const btn=e.target.closest('[data-act]');
+  if(btn){
+    e.stopPropagation();const{act,tid}=btn.dataset;
+    if(act==='launch')tools.launch(tid);
+    if(act==='tdl')tools.export(tid);
+    if(act==='tmenu'){const r=btn.getBoundingClientRect();ctx.showTool(tid,r.left,r.bottom+5)}
+    return;
+  }
+});
+
+$('tl-export').onclick = () => io.exportToolsBundle();
+
+// Shared context menu handler
+document.body.addEventListener('click', e=>{
+  const item=e.target.closest('[data-c]');
+  if(item){
+    const{c,id,tid}=item.dataset;
+    // Bookmarks
+    if(c==='copy'){const mk=S.bm.find(b=>b.id===id);if(mk)(navigator.clipboard?navigator.clipboard.writeText(mk.url):Promise.reject()).then(()=>toast('Copied!')).catch(()=>{const t=Object.assign(document.createElement('textarea'),{value:mk.url});document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();toast('Copied!')})}
+    if(c==='opn'){const mk=S.bm.find(b=>b.id===id);if(mk)bm.open(id)}
+    if(c==='pin'){bm.pin(id);lib.render()}
+    if(c==='del'){const card=document.querySelector(`.bm-card[data-id="${id}"]`);if(card){card.classList.add('removing');setTimeout(()=>{bm.delete(id);lib.render()},260)}}
+    // Tools
+    if(c==='tlaunch')tools.launch(tid);
+    if(c==='tdl')tools.export(tid);
+    if(c==='tdel'){const card=document.querySelector(`.tool-card[data-tid="${tid}"]`);if(card){card.classList.add('removing');setTimeout(()=>{tools.delete(tid);toolsLib.render()},260)}}
+    ctx.close();return;
+  }
+  if(!e.target.closest('[data-act="menu"]')&&!e.target.closest('[data-act="tmenu"]'))ctx.close();
+});
+
+// Settings drawer
+$('sd-x').onclick = () => sd.close();
+$('sd-scrim').onclick = () => sd.close();
+document.querySelectorAll('.th-sw').forEach(sw=>sw.addEventListener('click',()=>{S.prefs.theme=sw.dataset.theme;savePrefs();applyPrefs()}));
+$('layout-row').addEventListener('click',e=>{const b=e.target.closest('[data-layout]');if(!b)return;S.prefs.layout=b.dataset.layout;savePrefs();applyPrefs()});
+$('density-row').addEventListener('click',e=>{const b=e.target.closest('[data-density]');if(!b)return;S.prefs.density=b.dataset.density;savePrefs();applyPrefs()});
+document.querySelectorAll('.ac-dot').forEach(d=>d.addEventListener('click',()=>{S.prefs.accent=d.dataset.accent;savePrefs();applyPrefs()}));
+$('pv-visits').addEventListener('change',e=>{S.prefs.showVisits=e.target.checked;savePrefs();if($('library').classList.contains('open'))lib.render()});
+$('pv-tags').addEventListener('change',e=>{S.prefs.showTags=e.target.checked;savePrefs();if($('library').classList.contains('open'))lib.render()});
+
+$('storage-options').addEventListener('click',e=>{
+  const opt=e.target.closest('[data-backend]');if(!opt)return;
+  switchBackend(opt.dataset.backend);
+});
+
+$('sd-clear-bm').onclick = ()=>{if(!confirm('Delete ALL bookmarks?'))return;S.bm=[];SE.saveBookmarks(S.bm);computeTags();lib.render();toast('Bookmarks cleared')};
+$('sd-clear-tools').onclick = ()=>{if(!confirm('Delete ALL tools?'))return;S.tools=[];SE.saveTools(S.tools);toolsLib.render();toast('Tools cleared')};
+
+// Migration modal
+$('mm-yes').onclick = ()=>{ if(S.migrateCallback)S.migrateCallback(true) };
+$('mm-no').onclick  = ()=>{ if(S.migrateCallback)S.migrateCallback(false) };
+$('mm-cancel').onclick = ()=>{ $('migrate-modal').classList.remove('open');S.migrateCallback=null };
+
+// Import / export
+$('btn-expj').onclick = ()=>io.exportJSON();
+$('btn-impo').onclick = ()=>$('imp-file').click();
+$('btn-exph').onclick = ()=>io.exportHTML();
+$('imp-file').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>io.import(ev.target.result);r.readAsText(f);e.target.value=''});
+
+// Global drag & drop (JSON import anywhere)
+document.addEventListener('dragover',e=>{
+  const f=e.dataTransfer.files[0]||e.dataTransfer.items[0];
+  if(!$('tools-panel').classList.contains('open')){e.preventDefault();$('drop-zone').classList.add('active')}
+});
+document.addEventListener('dragleave',e=>{if(!e.relatedTarget)$('drop-zone').classList.remove('active')});
+document.addEventListener('drop',e=>{
+  $('drop-zone').classList.remove('active');
+  if($('tools-panel').classList.contains('open'))return; // handled by tools drop zone
+  e.preventDefault();
+  const f=e.dataTransfer.files[0];
+  if(!f)return;
+  if(f.name.endsWith('.json')){const r=new FileReader();r.onload=ev=>io.import(ev.target.result);r.readAsText(f)}
+  else if(f.name.endsWith('.html')){addToolFromFile(f);toolsLib.open()}
+});
+
+// Command bar
+$('cmd-in').addEventListener('keydown',e=>{if(e.key==='Enter')cmd.run($('cmd-in').value);if(e.key==='Escape')cmd.close()});
+
+// Help
+$('help-x').onclick = ()=>$('help-ov').classList.remove('open');
+$('help-ov').addEventListener('click',e=>{if(e.target===$('help-ov'))$('help-ov').classList.remove('open')});
+
+// Global keyboard
+document.addEventListener('keydown', e=>{
+  const inInput=document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA';
+  const over=$('overlay').classList.contains('open');
+  const libO=$('library').classList.contains('open');
+  const tlO=$('tools-panel').classList.contains('open');
+  const cmdO=$('cmd-bar').classList.contains('open');
+  const hlpO=$('help-ov').classList.contains('open');
+  const sdO=$('settings-drawer').classList.contains('open');
+  const mmO=$('migrate-modal').classList.contains('open');
+
+  if(e.key==='Escape'){
+    ctx.close();
+    if(mmO){$('migrate-modal').classList.remove('open');S.migrateCallback=null;return}
+    if(over){wiz.close();return}
+    if(hlpO){$('help-ov').classList.remove('open');return}
+    if(sdO){sd.close();return}
+    if(cmdO){cmd.close();return}
+    if(libO){lib.close();return}
+    if(tlO){toolsLib.close();return}
+    return;
+  }
+  if(inInput||over||cmdO||hlpO||mmO)return;
+  if(!e.ctrlKey&&!e.metaKey&&!e.altKey){
+    if(e.key==='a'||e.key==='A'){wiz.open();return}
+    if(e.key==='l'||e.key==='L'){lib.open();return}
+    if(e.key==='t'||e.key==='T'){toolsLib.open();return}
+    if(e.key==='s'||e.key==='S'){sd.open();return}
+    if(e.key==='?'){$('help-ov').classList.add('open');return}
+    if(e.key.length===1){cmd.open();$('cmd-in').value=e.key}
+  }
+});
+
+/* ══════════ BOOT / INIT ══════════ */
+(async () => {
+  try {
+    SE.backend = S.prefs.backend;
+    // Pre-open IDB if needed
+    if(S.prefs.backend === 'idb' || S.prefs.backend === 'hybrid') await IDB.open();
+    S.bm    = await SE.getBookmarks();
+    S.tools = await SE.getTools();
+  } catch(e) {
+    console.warn('Storage init error, falling back to localStorage:', e);
+    S.prefs.backend = 'ls'; SE.backend = 'ls';
+    S.bm    = SE._parseLs(localStorage.getItem(BM_KEY));
+    S.tools = SE._parseLs(localStorage.getItem(TL_KEY));
+  }
+  computeTags();
+  applyPrefs();
+  // Fade out loading
+  const ld=$('loading');ld.classList.add('hidden');
+  setTimeout(()=>{ld.style.display='none'},320);
+  // Reveal boot icons
+  $('boot').style.animation='bIn .6s .1s cubic-bezier(.4,0,.2,1) both';
+})();
+</script>
+</body>
+</html>
+<!-- DAKARI UISH -->
